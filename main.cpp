@@ -233,4 +233,3 @@ int main(){
     unzip(path);
     return 0;
 }
-reporterGroup[i].setAttribute("transform", `translate(${this.getWidth() / 2}, 18 + ${this.printOffsetH * i})`);
