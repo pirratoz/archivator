@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include <cstring>
 #include <list>
 
@@ -7,6 +8,7 @@ using std::locale;
 using std::list;
 using std::string;
 using std::cout;
+using std::cin;
 using std::endl;
 using std::memset;
 using std::ofstream;
@@ -65,7 +67,7 @@ void recursion(Node* branch, list<Node*> & array, unsigned int bit_, unsigned in
 }
 
 
-void create_tree_from_array(list<Node*> & array){
+void create_root_from_array(list<Node*> & array){
     while (array.size() != 1)
     {
         array.sort([](Node* f, Node* s){return (f->count > s->count);});
@@ -91,11 +93,11 @@ list<Node*> create_tree(int bits[256]){
         return array;
     }
     array2 = array;
-    create_tree_from_array(array);
+    create_root_from_array(array);
     recursion(array.front(), array2, 0, 0);
-    for (auto i : array2){
-        cout << i->ch << " " << i->bit_ << " " << i->count_bit << endl;
-    }
+    // for (auto i : array2){
+    //     cout << i->ch << " " << i->bit_ << " " << i->count_bit << endl;
+    // }
     return array2;
 }
 
@@ -159,11 +161,9 @@ void encode(const string & path, int bits[256], list<Node*> array){
     }
     f_code.close();
     f_zip.close();
-    cout << "Ss " << ss << endl;
     cout << "Старый размер файла: " << count_symbols << " байт" << endl;
     cout << "Новый размер файла: " << encoded_chars << " байт" << endl;
     cout << "zip: " << 1 - (encoded_chars / count_symbols) << " %" << endl;
-    cout << "ziped: " << 1 - (encoded_chars + (float)code_alp) / count_symbols << " %" << endl;
 }
 
 
@@ -221,18 +221,22 @@ void decode(const string & path, int bits[256]){
     }
     f_unzip.close();
     f_text.close();
-    cout << "cs " << count_symbols << " " << b << endl;
 }
 
 
 void unzip(const string & path){
+    auto begin = std::chrono::high_resolution_clock::now();
     int bits[256];
     memset(bits, 0, 256 * 4);
     decode(path, bits);
+    auto end = std::chrono::high_resolution_clock::now();
+    double elapsed_ns = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    cout << "Время разжатия: " << elapsed_ns << " seconds" << endl;
 }
 
 
 void zip(const string & path){
+    auto begin = std::chrono::high_resolution_clock::now();
     int bits[256];
     memset(bits, 0, 256 * 4);
     fill_bits(path, bits);
@@ -241,13 +245,37 @@ void zip(const string & path){
     //     cout << std::to_string(static_cast<int>(i->ch)) << " " << i->bit_ << " " << i->count_bit << "\n";
     // }
     encode(path, bits, array);
+    auto end = std::chrono::high_resolution_clock::now();
+    double elapsed_ns = std::chrono::duration_cast<std::chrono::seconds>(end - begin).count();
+    cout << "Время сжатия: " << elapsed_ns  << " seconds" << endl;
+}
+
+
+void help_menu(){
+    cout << "Доступные команды:\n"
+            << "0 - выход из программы\n"
+            << "1 - сжать файл\n"
+            << "2 - разжать файл\n"
+            << "3 - помощь\n";
 }
 
 
 int main(){
     setlocale(0, "ru_RU.utf-8");
-    string path = R"(/home/pirratoz/Desktop/projects/mini-project/labs/test.txt)";
-    zip(path);
-    unzip(path);
+    char menu = '-';
+    string path;
+    help_menu();
+    while (menu != '0'){
+        cout << "Команда: "; cin >> menu;
+        if (menu == '1') {
+            cout << "Введите путь к файлу: "; cin >> path;
+            zip(path);
+        } else if (menu == '2'){
+            cout << "Введите путь к файлу: "; cin >> path;
+            unzip(path);
+        } else if (menu == '3'){
+            help_menu();
+        }
+    }
     return 0;
 }
